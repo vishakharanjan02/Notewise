@@ -21,6 +21,7 @@ from backend.db import db
 from backend.document_processor import doc_processor
 from backend.ai_service import ai_service
 from backend.nlp_service import nlp_service
+from backend.spam_detector import predict_all as spam_predict_all
 
 # Initialize Flask app
 app = Flask(__name__, 
@@ -164,6 +165,31 @@ def analyze_text():
     except Exception as e:
         print(f"Error analyzing text: {e}")
         return jsonify({'error': 'Failed to analyze text'}), 500
+
+@app.route('/api/spam-check', methods=['POST'])
+def spam_check():
+    """Run local machine-learning spam detection on text input."""
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({'error': 'Text is required'}), 400
+
+        text = data['text'].strip()
+        if not text:
+            return jsonify({'error': 'Text cannot be empty'}), 400
+
+        prediction = spam_predict_all(text)
+        return jsonify({
+            'success': True,
+            'overall_verdict': prediction['overall_verdict'],
+            'results': prediction['results'],
+            'text_preview': text[:100]
+        })
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        print(f"Error running spam detection: {e}")
+        return jsonify({'error': 'Failed to run spam detection'}), 500
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():

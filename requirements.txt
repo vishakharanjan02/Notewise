@@ -7,6 +7,9 @@ Flask-CORS>=4.0.0
 
 # HTTP Requests for OpenRouter API
 requests>=2.31.0
+pandas
+numpy
+scikit-learn
 
 # Environment Variables Management  
 python-dotenv>=1.0.0

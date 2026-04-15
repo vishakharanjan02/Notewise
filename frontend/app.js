@@ -56,6 +56,10 @@ class SimpleNotewise {
             this.analyzeText();
         });
 
+        document.getElementById('spamCheckBtn').addEventListener('click', () => {
+            this.spamCheck();
+        });
+
         document.getElementById('speechToTextBtn').addEventListener('click', () => {
             this.toggleSpeechRecognition();
         });
@@ -240,18 +244,21 @@ class SimpleNotewise {
         const aiPanel = document.getElementById('aiPanel');
         const generateTitleBtn = document.getElementById('generateTitleBtn');
         const analyzeBtn = document.getElementById('analyzeBtn');
+        const spamCheckBtn = document.getElementById('spamCheckBtn');
         const titleInput = document.getElementById('noteTitle');
         
         if (this.aiAvailable) {
             aiPanel.style.display = 'block';
             generateTitleBtn.disabled = false;
             analyzeBtn.style.display = 'inline-block';
+            spamCheckBtn.style.display = this.inputType === 'text' ? 'inline-block' : 'none';
             titleInput.placeholder = 'Enter note title or leave empty for AI generation';
             titleInput.required = false;
         } else {
             aiPanel.style.display = 'none';
             generateTitleBtn.disabled = true;
             analyzeBtn.style.display = 'none';
+            spamCheckBtn.style.display = this.inputType === 'text' ? 'inline-block' : 'none';
             titleInput.placeholder = 'Enter note title';
             titleInput.required = true;
         }
@@ -367,6 +374,130 @@ class SimpleNotewise {
             analyzeBtn.innerHTML = originalHTML;
             analyzeBtn.disabled = false;
         }
+    }
+
+    async spamCheck() {
+        const content = document.getElementById('noteContent').value.trim();
+
+        if (!content) {
+            this.showAlert('Please enter some content first', 'warning');
+            return;
+        }
+
+        const spamCheckBtn = document.getElementById('spamCheckBtn');
+        const originalHTML = spamCheckBtn.innerHTML;
+        spamCheckBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        spamCheckBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/spam-check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: content
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                this.showSpamModal(result);
+            } else {
+                throw new Error(result.error || 'Failed to check for spam');
+            }
+        } catch (error) {
+            console.error('Error checking for spam:', error);
+            this.showAlert(`Spam check failed: ${error.message}`, 'danger');
+        } finally {
+            spamCheckBtn.innerHTML = originalHTML;
+            spamCheckBtn.disabled = false;
+        }
+    }
+
+    showSpamModal(result) {
+        const existingModal = document.getElementById('spamModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const overallVerdict = (result.overall_verdict || 'ham').toLowerCase();
+        const verdictBadgeClass = overallVerdict === 'spam' ? 'bg-danger' : 'bg-success';
+        const verdictLabel = overallVerdict === 'spam' ? '🚨 SPAM DETECTED' : '✅ NOT SPAM';
+        const previewText = this.escapeHtml(result.text_preview || '');
+
+        const rowsHtml = (result.results || []).map(item => {
+            const verdict = (item.verdict || 'ham').toLowerCase();
+            const badgeClass = verdict === 'spam' ? 'bg-danger' : 'bg-success';
+            const label = verdict === 'spam' ? 'Spam' : 'Ham';
+
+            return `
+                <tr>
+                    <td>${this.escapeHtml(item.model || '')}</td>
+                    <td><span class="badge ${badgeClass}">${label}</span></td>
+                    <td>${Number(item.confidence || 0).toFixed(1)}%</td>
+                    <td>${Number(item.accuracy || 0).toFixed(1)}%</td>
+                </tr>
+            `;
+        }).join('');
+
+        const modalHTML = `
+            <div class="modal fade" id="spamModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-shield-alt me-2"></i>Spam Detection Results
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <span class="badge ${verdictBadgeClass} fs-6 px-3 py-2">${verdictLabel}</span>
+                            </div>
+                            <div class="border rounded p-3 bg-light text-muted mb-4">
+                                ${previewText || 'No preview available.'}
+                            </div>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-striped table-bordered align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Model</th>
+                                            <th>Verdict</th>
+                                            <th>Confidence</th>
+                                            <th>Training Accuracy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rowsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="border rounded p-3 bg-light">
+                                <h6 class="mb-2">How does this work?</h6>
+                                <p class="mb-2">
+                                    Spam detection uses machine learning to study patterns in real spam and normal messages.
+                                    Each model looks at the words in your text and decides whether the message looks more like spam or ham.
+                                </p>
+                                <ul class="mb-0 small">
+                                    <li>Naive Bayes: counts word frequencies to calculate spam probability</li>
+                                    <li>Logistic Regression: finds a mathematical boundary between spam and normal text</li>
+                                    <li>SVM: finds the widest possible gap to separate spam from normal messages</li>
+                                    <li>Random Forest: combines many decision trees and takes a majority vote</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        new bootstrap.Modal(document.getElementById('spamModal')).show();
     }
     
     showAnalysisModal(analysis) {
@@ -518,17 +649,21 @@ class SimpleNotewise {
         this.inputType = type;
         const textSection = document.getElementById('textInputSection');
         const fileSection = document.getElementById('fileInputSection');
+        const spamCheckBtn = document.getElementById('spamCheckBtn');
         
         if (type === 'text') {
             textSection.style.display = 'block';
             fileSection.style.display = 'none';
             document.getElementById('noteContent').required = true;
+            spamCheckBtn.style.display = 'inline-block';
         } else {
             textSection.style.display = 'none';
             fileSection.style.display = 'block';
             document.getElementById('noteContent').required = false;
+            spamCheckBtn.style.display = 'none';
         }
         
+        this.updateAIInterface();
         this.clearFile();
     }
     

@@ -27,6 +27,9 @@ wheels/
 
 # Environment variables
 .env
+.env.save
+.venv/
+spam.tsv
 
 # IDE
 .vscode/
