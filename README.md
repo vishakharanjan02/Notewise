@@ -1,6 +1,5 @@
-# Vishakha_Notewise
-
-Vishakha_Notewise is a Flask + vanilla JavaScript note-taking app with:
+# Notewise
+Notewise is a Flask + vanilla JavaScript note-taking app with:
 
 - text note creation
 - file upload support for `PDF`, `TXT`, `DOC`, and `DOCX`
