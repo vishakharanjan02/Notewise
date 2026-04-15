@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vishakha_Notewise - Simple Note Taking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-sticky-note me-2"></i>
+                Notewise
+            </a>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-light btn-sm" id="darkModeToggle" type="button" title="Toggle dark mode">
+                    <span id="darkModeIcon">🌙</span>
+                </button>
+                <button class="btn btn-outline-light btn-sm" onclick="noteWise.showAllNotes()">
+                    <i class="fas fa-list me-1"></i>My Notes
+                </button>
+                <button class="btn btn-outline-danger btn-sm" onclick="noteWise.confirmClearAllNotes()">
+                    <i class="fas fa-trash-alt me-1"></i>Clear All
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Alert container -->
+        <div id="alertContainer"></div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Input Section -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-edit me-2"></i>
+                            Create New Note
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="noteForm">
+                            <div class="mb-3">
+                                <label for="noteTitle" class="form-label">Note Title</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="noteTitle" 
+                                           placeholder="Enter note title or leave empty for AI generation">
+                                    <button type="button" class="btn btn-outline-secondary" id="generateTitleBtn" 
+                                            title="Generate title with AI" disabled>
+                                        <i class="fas fa-magic"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- AI Features Panel -->
+                            <div id="aiPanel" class="mb-3" style="display: none;">
+                                <div class="card border-info">
+                                    <div class="card-body p-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-info">
+                                                <i class="fas fa-robot me-1"></i>AI Features Available
+                                            </small>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="autoAnalyze">
+                                                <label class="form-check-label" for="autoAnalyze">
+                                                    <small>Auto-analyze</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Input Type Selector -->
+                            <div class="mb-3">
+                                <label class="form-label">Input Type</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="inputType" 
+                                           id="textInput" value="text" checked>
+                                    <label class="form-check-label" for="textInput">
+                                        <i class="fas fa-keyboard me-1"></i>Text Input
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="inputType" 
+                                           id="fileInput" value="file">
+                                    <label class="form-check-label" for="fileInput">
+                                        <i class="fas fa-file-upload me-1"></i>File Upload
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Text Input Section -->
+                            <div id="textInputSection" class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label for="noteContent" class="form-label mb-0">Note Content</label>
+                                    <button type="button" class="btn speech-mic-btn" id="speechToTextBtn" title="Start voice typing">
+                                        <i class="fas fa-microphone"></i>
+                                        <span class="ms-1">Speak</span>
+                                    </button>
+                                </div>
+                                <textarea class="form-control" id="noteContent" rows="8" 
+                                         placeholder="Write your note here..."></textarea>
+                                <div id="speechStatus" class="speech-status mt-2" aria-live="polite"></div>
+                            </div>
+
+                            <!-- File Upload Section -->
+                            <div id="fileInputSection" class="mb-3" style="display: none;">
+                                <label class="form-label">Upload File</label>
+                                <div id="fileUploadArea" class="file-upload-area">
+                                    <div id="fileUploadPrompt">
+                                        <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
+                                        <p class="mb-1">Drag & drop your file here</p>
+                                        <p class="text-muted">or click to browse</p>
+                                        <small class="text-muted">Supports: PDF, TXT, DOC, DOCX</small>
+                                    </div>
+                                    <div id="fileSelected" style="display: none;">
+                                        <i class="fas fa-file fa-2x mb-2"></i>
+                                        <p id="fileName" class="mb-1"></p>
+                                        <p id="fileSize" class="text-muted mb-2"></p>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" id="removeFileBtn">
+                                            <i class="fas fa-times me-1"></i>Remove
+                                        </button>
+                                    </div>
+                                </div>
+                                <input type="file" id="fileUpload" style="display: none;" 
+                                       accept=".pdf,.txt,.doc,.docx">
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Generate
+                                </button>
+                                <button type="button" class="btn btn-outline-info" id="analyzeBtn" 
+                                style="display: none;" title="Analyze with AI">
+                            <i class="fas fa-list-ul me-2"></i>Key Points
+                        </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Display Section -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-list me-2"></i>
+                            Recent Notes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input
+                                type="search"
+                                class="form-control"
+                                id="noteSearch"
+                                placeholder="Search notes by title or content"
+                                aria-label="Search notes"
+                            >
+                        </div>
+                        <div id="notesList">
+                            <p class="text-muted">No notes yet. Create your first note!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note Detail Modal -->
+    <div class="modal fade" id="noteModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="noteModalTitle">Note Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="noteModalContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-primary" id="exportPdfBtn">
+                        <i class="fas fa-file-pdf me-2"></i>Export PDF
+                    </button>
+                    <button type="button" class="btn btn-danger" id="deleteNoteBtn">
+                        <i class="fas fa-trash me-2"></i>Delete Note
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

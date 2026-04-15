@@ -1,0 +1,23 @@
+# Vishakha_Notewise - OpenRouter AI-Powered Dependencies
+# Minimal dependencies - OpenRouter handles the heavy lifting
+
+# Core Flask Framework
+Flask>=2.3.0
+Flask-CORS>=4.0.0
+
+# HTTP Requests for OpenRouter API
+requests>=2.31.0
+
+# Environment Variables Management  
+python-dotenv>=1.0.0
+
+# File handling utilities
+Werkzeug>=2.3.0
+
+# Document processing libraries (for file upload support)
+PyPDF2>=3.0.0  # For PDF text extraction
+python-docx>=0.8.11  # For Word document text extraction
+
+# NLP and Entity Extraction
+spacy>=3.7.0
+# Note: You will need to run 'python -m spacy download en_core_web_sm' after installing requirements
