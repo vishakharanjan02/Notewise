@@ -85,6 +85,10 @@ class SimpleNotewise {
             this.exportCurrentNoteAsPdf();
         });
 
+        document.getElementById('noteSpamCheckBtn').addEventListener('click', () => {
+            this.spamCheckCurrentNote();
+        });
+
         this.setupSpeechRecognition();
         this.updateDarkModeButton();
     }
@@ -385,9 +389,34 @@ class SimpleNotewise {
         }
 
         const spamCheckBtn = document.getElementById('spamCheckBtn');
-        const originalHTML = spamCheckBtn.innerHTML;
-        spamCheckBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        spamCheckBtn.disabled = true;
+        await this.runSpamCheckRequest(content, spamCheckBtn);
+    }
+
+    async spamCheckCurrentNote() {
+        if (!this.currentNoteId) {
+            this.showAlert('Open a note before checking it for spam.', 'warning');
+            return;
+        }
+
+        const currentNote = this.allNotes.find(note => note.id === this.currentNoteId);
+        if (!currentNote || !(currentNote.content || '').trim()) {
+            this.showAlert('This note does not contain text to check.', 'warning');
+            return;
+        }
+
+        const noteSpamCheckBtn = document.getElementById('noteSpamCheckBtn');
+        await this.runSpamCheckRequest(currentNote.content.trim(), noteSpamCheckBtn);
+    }
+
+    async runSpamCheckRequest(content, buttonElement) {
+        if (!buttonElement) {
+            this.showAlert('Spam check button is unavailable.', 'danger');
+            return;
+        }
+
+        const originalHTML = buttonElement.innerHTML;
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        buttonElement.disabled = true;
 
         try {
             const response = await fetch('/api/spam-check', {
@@ -411,8 +440,8 @@ class SimpleNotewise {
             console.error('Error checking for spam:', error);
             this.showAlert(`Spam check failed: ${error.message}`, 'danger');
         } finally {
-            spamCheckBtn.innerHTML = originalHTML;
-            spamCheckBtn.disabled = false;
+            buttonElement.innerHTML = originalHTML;
+            buttonElement.disabled = false;
         }
     }
 
@@ -960,6 +989,7 @@ class SimpleNotewise {
         this.currentNoteId = noteId;
         
         document.getElementById('noteModalTitle').textContent = note.title;
+        document.getElementById('noteSpamCheckBtn').style.display = (note.content || '').trim() ? 'inline-block' : 'none';
         
         const fileInfo = note.source_type === 'file' && note.filename
             ? `

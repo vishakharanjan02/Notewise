@@ -87,6 +87,45 @@ body.dark-mode #noteModalContent .badge.border {
     border-color: #3a4e78 !important;
 }
 
+body.dark-mode #spamModal .modal-title,
+body.dark-mode #spamModal h6,
+body.dark-mode #spamModal p,
+body.dark-mode #spamModal li,
+body.dark-mode #spamModal td,
+body.dark-mode #spamModal th {
+    color: #e0e0e0;
+}
+
+body.dark-mode #spamModal .bg-light,
+body.dark-mode #spamModal .border.rounded,
+body.dark-mode #spamModal .table,
+body.dark-mode #spamModal .table-light,
+body.dark-mode #spamModal .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: #0f1c34 !important;
+    color: #e0e0e0 !important;
+    border-color: #2a3b63 !important;
+}
+
+body.dark-mode #spamModal .table-striped > tbody > tr:nth-of-type(even) > * {
+    background-color: #16213e !important;
+    color: #e0e0e0 !important;
+    border-color: #2a3b63 !important;
+}
+
+body.dark-mode #spamModal thead.table-light th,
+body.dark-mode #spamModal .table > :not(caption) > thead > tr > th {
+    background-color: #0f3460 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    opacity: 1 !important;
+    border-color: #2a3b63 !important;
+}
+
+body.dark-mode #spamModal .text-muted,
+body.dark-mode #spamModal .small {
+    color: #b9c2d0 !important;
+}
+
 body.dark-mode #noteContent,
 body.dark-mode #noteTitle,
 body.dark-mode #noteSearch,
